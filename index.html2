@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Floenkie Bal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background-color: #38b6ff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1, h2, h3 {
+      color: black;
+      background-color: transparent;
+      display: inline-block;
+      padding: 0.2em 1em;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    input, select, button {
+      font-family: 'Quicksand', sans-serif;
+      border-radius: 12px;
+      border: none;
+      padding: 10px;
+      margin: 5px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    button {
+      background-color: white;
+      cursor: pointer;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .top-buttons {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: none;
+      gap: 10px;
+    }
+
+    .top-buttons.show {
+      display: flex;
+    }
+
+    .team-captain-checkbox {
+      margin-left: 10px;
+      border-radius: 50%;
+      accent-color: green;
+    }
+
+    .selected-captain {
+      background-color: lightgreen;
+      border-radius: 10px;
+      padding: 5px;
+    }
+
+    .player-input {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .team-container {
+      margin: 20px 0;
+      padding: 10px;
+      border: 2px solid white;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .matchup-button {
+      display: inline-block;
+      width: 40%;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 12px;
+      border: 2px solid black;
+      background-color: white;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .matchup-button.selected {
+      background-color: lightgreen;
+    }
+
+    table {
+      width: 100%;
+      background-color: white;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 8px;
+    }
+
+    .team-headers {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .team-headers input {
+      flex: 1;
+    }
+
+    #tie-break-scherm {
+      display: none;
+    }
+
+    #toernooi-scherm {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="top-nav" class="top-buttons">
+    <button onclick="goBack()">Terug</button>
+    <button onclick="goHome()">Home</button>
+  </div>
+
+  <div class="container">
+    <h1>Floenkie Bal</h1>
+
+    <div id="begin-scherm">
+      <!-- Bestaande content-->
+    </div>
+
+    <div id="tie-break-scherm">
+      <h2>Tie Break</h2>
+      <p>Selecteer 2 teams voor de finaleronde:</p>
+      <div id="tie-break-teams" class="button-group"></div>
+      <button onclick="startFinale()" id="start-finale-btn" disabled>Start Finaleronde</button>
+    </div>
+
+    <div id="toernooi-scherm">
+      <h2>Toernooi Schema</h2>
+      <div id="wedstrijden"></div>
+    </div>
+  </div>
+
+  <script>
+    let teamNamen = [];
+    let gespeeldeRondes = [];
+
+    function startTournament() {
+      document.getElementById("bewerken-scherm")?.style?.display = "none";
+      document.getElementById("toernooi-scherm").style.display = "block";
+
+      const wedstrijden = document.getElementById("wedstrijden");
+      wedstrijden.innerHTML = "";
+      teamNamen = [];
+
+      document.querySelectorAll(".team-container .team-headers input").forEach((input, i) => {
+        const naam = input.value.trim() || `Team ${i + 1}`;
+        teamNamen.push(naam);
+      });
+
+      gespeeldeRondes = genereerRondes(teamNamen);
+      gespeeldeRondes.forEach((match, index) => {
+        wedstrijden.innerHTML += `<p>Ronde ${index + 1}: ${match[0]} vs ${match[1]}</p>`;
+      });
+    }
+
+    function genereerRondes(teams) {
+      const rondes = [];
+      for (let i = 0; i < teams.length; i++) {
+        for (let j = i + 1; j < teams.length; j++) {
+          rondes.push([teams[i], teams[j]]);
+        }
+      }
+      return rondes;
+    }
+
+    function toonTieBreak(teams) {
+      document.getElementById("tussenstand-scherm")?.style?.display = "none";
+      document.getElementById("tie-break-scherm").style.display = "block";
+
+      const container = document.getElementById("tie-break-teams");
+      container.innerHTML = "";
+      let geselecteerd = [];
+
+      teams.forEach(team => {
+        const btn = document.createElement("button");
+        btn.className = "matchup-button";
+        btn.textContent = team;
+        btn.onclick = () => {
+          btn.classList.toggle("selected");
+          geselecteerd = [...container.querySelectorAll(".selected")].map(b => b.textContent);
+          document.getElementById("start-finale-btn").disabled = geselecteerd.length !== 2;
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function startFinale() {
+      const geselecteerd = [...document.querySelectorAll("#tie-break-teams .selected")].map(b => b.textContent);
+      if (geselecteerd.length === 2) {
+        gespeeldeRondes.push([[geselecteerd[0], geselecteerd[1]]]);
+        startRonde(gespeeldeRondes.length);
+        document.getElementById("tie-break-scherm").style.display = "none";
+      }
+    }
+  </script>
+</body>
+
+</html>
