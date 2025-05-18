@@ -54,8 +54,12 @@
       position: absolute;
       top: 10px;
       left: 10px;
-      display: flex;
+      display: none;
       gap: 10px;
+    }
+
+    .top-buttons.show {
+      display: flex;
     }
 
     .team-captain-checkbox {
@@ -76,11 +80,17 @@
       justify-content: center;
       gap: 10px;
     }
+
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
   </style>
 </head>
 
 <body>
-  <div class="top-buttons">
+  <div id="top-nav" class="top-buttons">
     <button onclick="goBack()">Terug</button>
     <button onclick="goHome()">Home</button>
   </div>
@@ -91,9 +101,11 @@
     <!-- Voorbeeld beginsectie -->
     <div id="begin-scherm">
       <h2>Spelers toevoegen</h2>
-      <div id="spelers-container"></div>
-      <button onclick="addSpeler()">+</button>
-      <button onclick="removeSpeler()">-</button>
+      <div class="button-group">
+        <button onclick="addSpeler()">+</button>
+        <button onclick="removeSpeler()">-</button>
+      </div>
+      <div id="spelers-container" class="player-list"></div>
 
       <h2>Aantal teams</h2>
       <select id="aantal-teams">
@@ -128,7 +140,7 @@
 
     function addSpeler() {
       if (spelers.length < maxSpelers) {
-        spelers.push(`Speler ${spelers.length + 1}`);
+        spelers.push("");
         renderSpelers();
       }
     }
@@ -145,6 +157,7 @@
       container.innerHTML = "";
       spelers.forEach((speler, index) => {
         const input = document.createElement("input");
+        input.placeholder = `Speler ${index + 1}`;
         input.value = speler;
         input.oninput = (e) => spelers[index] = e.target.value;
         container.appendChild(input);
@@ -154,6 +167,7 @@
     function verdeelTeams() {
       document.getElementById("begin-scherm").style.display = "none";
       document.getElementById("bewerken-scherm").style.display = "block";
+      document.getElementById("top-nav").classList.add("show");
 
       const teamEditor = document.getElementById("team-editor");
       teamEditor.innerHTML = "";
@@ -204,11 +218,25 @@
     }
 
     function goBack() {
-      window.history.back();
+      const bewerkenScherm = document.getElementById("bewerken-scherm");
+      const toernooiScherm = document.getElementById("toernooi-scherm");
+      const beginScherm = document.getElementById("begin-scherm");
+
+      if (toernooiScherm.style.display === "block") {
+        toernooiScherm.style.display = "none";
+        bewerkenScherm.style.display = "block";
+      } else if (bewerkenScherm.style.display === "block") {
+        bewerkenScherm.style.display = "none";
+        beginScherm.style.display = "block";
+        document.getElementById("top-nav").classList.remove("show");
+      }
     }
 
     function goHome() {
-      location.reload();
+      document.getElementById("begin-scherm").style.display = "block";
+      document.getElementById("bewerken-scherm").style.display = "none";
+      document.getElementById("toernooi-scherm").style.display = "none";
+      document.getElementById("top-nav").classList.remove("show");
     }
 
     for (let i = 0; i < 4; i++) addSpeler();
