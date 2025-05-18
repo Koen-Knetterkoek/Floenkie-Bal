@@ -3,13 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drankspel Teamverdeler</title>
+  <title>Floenkie Bal</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
       max-width: 600px;
       margin: auto;
+      background-color: #38b6ff;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header img {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    h1 {
+      color: white;
     }
     input[type="text"] {
       width: 100%;
@@ -19,23 +33,39 @@
     button {
       padding: 10px;
       margin: 10px 5px 10px 0;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+      background-color: #ffffff;
+      cursor: pointer;
     }
     .team, .match {
       margin-top: 20px;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
+      background-color: #ffffff;
     }
     .team h3, .match h4 {
       margin-bottom: 5px;
     }
-    #tournamentScreen {
+    #tournamentScreen, #editTeamsScreen {
       display: none;
+    }
+    .team-captain {
+      cursor: pointer;
+    }
+    .selected-captain {
+      font-weight: bold;
+      color: green;
     }
   </style>
 </head>
 <body>
-  <h1>Drankspel Teamverdeler</h1>
+  <header>
+    <img src="FLOENKIE.png" alt="Floenkie logo">
+    <h1>Floenkie Bal</h1>
+  </header>
 
   <div id="setupScreen">
     <label for="teamCount">Aantal teams:</label>
@@ -58,6 +88,12 @@
     <div id="teams"></div>
   </div>
 
+  <div id="editTeamsScreen">
+    <h2>Bewerk teams</h2>
+    <div id="editTeams"></div>
+    <button id="startTournamentBtn" onclick="startTournament()" disabled>Toernooi beginnen</button>
+  </div>
+
   <div id="tournamentScreen">
     <h2>Toernooi</h2>
     <div id="tournament"></div>
@@ -70,6 +106,8 @@
     const playerInputsDiv = document.getElementById('playerInputs');
     const generateBtn = document.getElementById('generateBtn');
     const confirmBtn = document.getElementById('confirmBtn');
+    const editTeamsScreen = document.getElementById('editTeamsScreen');
+    const startTournamentBtn = document.getElementById('startTournamentBtn');
 
     function renderPlayerInputs() {
       for (let i = 1; i <= maxPlayers; i++) {
@@ -101,6 +139,7 @@
     }
 
     let currentTeams = [];
+    let captainsSelected = [];
 
     function generateTeams() {
       const teamCount = parseInt(document.getElementById('teamCount').value);
@@ -146,8 +185,56 @@
 
     function confirmTeams() {
       document.getElementById('setupScreen').style.display = 'none';
+      editTeamsScreen.style.display = 'block';
+      const editDiv = document.getElementById('editTeams');
+      editDiv.innerHTML = '';
+      captainsSelected = Array(currentTeams.length).fill(null);
+
+      currentTeams.forEach((team, i) => {
+        const teamDiv = document.createElement('div');
+        teamDiv.className = 'team';
+
+        const teamNameInput = document.createElement('input');
+        teamNameInput.type = 'text';
+        teamNameInput.value = `Team ${i + 1}`;
+        teamNameInput.id = `teamName${i}`;
+
+        const playerList = document.createElement('ul');
+        team.forEach(player => {
+          const li = document.createElement('li');
+          li.textContent = player;
+          li.className = 'team-captain';
+          li.onclick = () => {
+            [...playerList.children].forEach(child => child.classList.remove('selected-captain'));
+            li.classList.add('selected-captain');
+            captainsSelected[i] = player;
+            checkReadyToStart();
+          };
+          playerList.appendChild(li);
+        });
+
+        teamDiv.appendChild(teamNameInput);
+        teamDiv.appendChild(playerList);
+        editDiv.appendChild(teamDiv);
+      });
+
+      checkReadyToStart();
+    }
+
+    function checkReadyToStart() {
+      const tournamentNeeded = currentTeams.length > 2;
+      if (!tournamentNeeded || captainsSelected.every(c => c)) {
+        startTournamentBtn.disabled = false;
+      } else {
+        startTournamentBtn.disabled = true;
+      }
+    }
+
+    function startTournament() {
+      editTeamsScreen.style.display = 'none';
       document.getElementById('tournamentScreen').style.display = 'block';
 
+      const teamNames = currentTeams.map((_, i) => document.getElementById(`teamName${i}`).value);
       const teamCount = currentTeams.length;
       const tournamentDiv = document.getElementById('tournament');
       tournamentDiv.innerHTML = '';
@@ -160,14 +247,14 @@
             const refIndex = available[Math.floor(Math.random() * available.length)];
             const matchDiv = document.createElement('div');
             matchDiv.className = 'match';
-            matchDiv.innerHTML = `<h4>Wedstrijd ${matchNr++}</h4><p>Team ${i + 1} vs Team ${j + 1} <br> Scheidsrechter: Team ${refIndex + 1}</p>`;
+            matchDiv.innerHTML = `<h4>Wedstrijd ${matchNr++}</h4><p>${teamNames[i]} vs ${teamNames[j]} <br> Scheidsrechter: ${teamNames[refIndex]}</p>`;
             tournamentDiv.appendChild(matchDiv);
           }
         }
       } else {
         const matchDiv = document.createElement('div');
         matchDiv.className = 'match';
-        matchDiv.innerHTML = `<h4>Wedstrijd</h4><p>Team 1 vs Team 2</p>`;
+        matchDiv.innerHTML = `<h4>Wedstrijd</h4><p>${teamNames[0]} vs ${teamNames[1]}</p>`;
         tournamentDiv.appendChild(matchDiv);
       }
     }
