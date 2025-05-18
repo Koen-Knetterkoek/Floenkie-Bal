@@ -1,304 +1,218 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Floenkie Bal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Montserrat&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Montserrat', sans-serif;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
+      font-family: 'Quicksand', sans-serif;
       background-color: #38b6ff;
-    }
-    header {
+      margin: 0;
+      padding: 0;
       text-align: center;
-      margin-bottom: 20px;
     }
-    h1, h2, h3, h4 {
-      font-family: 'Fredoka', sans-serif;
-      color: white;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: none;
-      border-radius: 12px;
-      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    }
-    button {
-      padding: 10px;
-      margin: 10px 5px 10px 0;
-      border: none;
-      border-radius: 12px;
-      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-      background-color: #ffffff;
-      cursor: pointer;
-    }
-    .team, .match {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background-color: #ffffff;
-    }
-    .team h3, .match h4 {
-      margin-bottom: 5px;
-    }
-    #tournamentScreen, #editTeamsScreen {
-      display: none;
-    }
-    .team-captain {
-      cursor: pointer;
-      padding: 5px;
-      border-radius: 12px;
+
+    h1, h2, h3 {
+      color: black;
+      background-color: white;
+      border-radius: 10px;
       display: inline-block;
+      padding: 0.2em 1em;
     }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    input, select, button {
+      font-family: 'Quicksand', sans-serif;
+      border-radius: 12px;
+      border: none;
+      padding: 10px;
+      margin: 5px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    button {
+      background-color: white;
+      cursor: pointer;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .top-buttons {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .team-captain-checkbox {
+      margin-left: 10px;
+      border-radius: 50%;
+      accent-color: green;
+    }
+
     .selected-captain {
-      background-color: #8bc34a;
-      color: white;
+      background-color: lightgreen;
+      border-radius: 10px;
+      padding: 5px;
     }
-    .navigation-buttons {
-      margin-top: 20px;
-    }
-    input[type="radio"] {
-      margin-right: 5px;
-      accent-color: #8bc34a;
+
+    .player-input {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
   </style>
 </head>
+
 <body>
-  <header>
+  <div class="top-buttons">
+    <button onclick="goBack()">Terug</button>
+    <button onclick="goHome()">Home</button>
+  </div>
+
+  <div class="container">
     <h1>Floenkie Bal</h1>
-  </header>
 
-  <div id="setupScreen">
-    <label for="teamCount">Aantal teams:</label>
-    <select id="teamCount">
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-    </select>
+    <!-- Voorbeeld beginsectie -->
+    <div id="begin-scherm">
+      <h2>Spelers toevoegen</h2>
+      <div id="spelers-container"></div>
+      <button onclick="addSpeler()">+</button>
+      <button onclick="removeSpeler()">-</button>
 
-    <h2>Voer spelers in:</h2>
-    <div>
-      <button onclick="adjustPlayerCount(-1)">-</button>
-      <button onclick="adjustPlayerCount(1)">+</button>
+      <h2>Aantal teams</h2>
+      <select id="aantal-teams">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+
+      <div class="button-group">
+        <button onclick="verdeelTeams()">Teams verdelen</button>
+      </div>
     </div>
-    <div id="playerInputs"></div>
 
-    <button id="generateBtn" onclick="generateTeams()">Verdeel in teams</button>
-    <button id="confirmBtn" style="display:none;" onclick="confirmTeams()">Teams bevestigen</button>
-
-    <div id="teams"></div>
-  </div>
-
-  <div id="editTeamsScreen">
-    <h2>Bewerk teams</h2>
-    <p>Let op: Selecteer per team een Team Captain.</p>
-    <div id="editTeams"></div>
-    <button id="startTournamentBtn" onclick="startTournament()" disabled>Toernooi beginnen</button>
-    <div class="navigation-buttons">
-      <button onclick="goBackToSetup()">Terug</button>
-      <button onclick="goHome()">🏠</button>
+    <!-- Hier komen andere schermen -->
+    <div id="bewerken-scherm" style="display:none">
+      <h2>Teams bewerken</h2>
+      <p>Selecteer per team een Team Captain voordat je doorgaat.</p>
+      <div id="team-editor"></div>
+      <button onclick="startTournament()">Toernooi beginnen</button>
     </div>
-  </div>
 
-  <div id="tournamentScreen">
-    <h2>Toernooi</h2>
-    <div id="tournament"></div>
-    <div class="navigation-buttons">
-      <button onclick="goBackToEdit()">Terug</button>
-      <button onclick="goHome()">🏠</button>
+    <div id="toernooi-scherm" style="display:none">
+      <h2>Toernooi Schema</h2>
+      <div id="wedstrijden"></div>
     </div>
   </div>
 
   <script>
-    let playerCount = 4;
-    const minPlayers = 4;
-    const maxPlayers = 24;
-    const playerInputsDiv = document.getElementById('playerInputs');
-    const generateBtn = document.getElementById('generateBtn');
-    const confirmBtn = document.getElementById('confirmBtn');
-    const editTeamsScreen = document.getElementById('editTeamsScreen');
-    const startTournamentBtn = document.getElementById('startTournamentBtn');
+    let spelers = [];
+    let minSpelers = 4;
+    let maxSpelers = 24;
 
-    function renderPlayerInputs() {
-      for (let i = 1; i <= maxPlayers; i++) {
-        let input = document.getElementById(`player${i}`);
-        if (!input) {
-          input = document.createElement('input');
-          input.type = 'text';
-          input.placeholder = `Speler ${i}`;
-          input.id = `player${i}`;
-          playerInputsDiv.appendChild(input);
-        }
-        input.style.display = i <= playerCount ? 'block' : 'none';
+    function addSpeler() {
+      if (spelers.length < maxSpelers) {
+        spelers.push(`Speler ${spelers.length + 1}`);
+        renderSpelers();
       }
     }
 
-    function adjustPlayerCount(change) {
-      playerCount = Math.min(maxPlayers, Math.max(minPlayers, playerCount + change));
-      renderPlayerInputs();
+    function removeSpeler() {
+      if (spelers.length > minSpelers) {
+        spelers.pop();
+        renderSpelers();
+      }
     }
 
-    renderPlayerInputs();
-
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
+    function renderSpelers() {
+      const container = document.getElementById("spelers-container");
+      container.innerHTML = "";
+      spelers.forEach((speler, index) => {
+        const input = document.createElement("input");
+        input.value = speler;
+        input.oninput = (e) => spelers[index] = e.target.value;
+        container.appendChild(input);
+      });
     }
 
-    let currentTeams = [];
-    let captainsSelected = [];
+    function verdeelTeams() {
+      document.getElementById("begin-scherm").style.display = "none";
+      document.getElementById("bewerken-scherm").style.display = "block";
 
-    function generateTeams() {
-      const teamCount = parseInt(document.getElementById('teamCount').value);
-      const players = [];
+      const teamEditor = document.getElementById("team-editor");
+      teamEditor.innerHTML = "";
+      const aantalTeams = parseInt(document.getElementById("aantal-teams").value);
+      let teams = Array.from({ length: aantalTeams }, () => []);
 
-      for (let i = 1; i <= playerCount; i++) {
-        const name = document.getElementById(`player${i}`).value.trim();
-        if (name) players.push(name);
-      }
-
-      if (players.length < 4) {
-        alert("Voer minstens 4 spelers in.");
-        return;
-      }
-
-      if (players.length < teamCount) {
-        alert("Niet genoeg spelers voor het aantal gekozen teams.");
-        return;
-      }
-
-      const shuffledPlayers = shuffleArray(players);
-      currentTeams = Array.from({ length: teamCount }, () => []);
-      shuffledPlayers.forEach((player, index) => {
-        currentTeams[index % teamCount].push(player);
+      spelers.forEach((speler, index) => {
+        teams[index % aantalTeams].push(speler);
       });
 
-      displayTeams(currentTeams);
-
-      generateBtn.textContent = 'Reshuffle';
-      confirmBtn.style.display = 'inline-block';
-    }
-
-    function displayTeams(teams) {
-      const teamsDiv = document.getElementById('teams');
-      teamsDiv.innerHTML = '';
       teams.forEach((team, i) => {
-        const teamDiv = document.createElement('div');
-        teamDiv.className = 'team';
-        teamDiv.innerHTML = `<h3>Team ${i + 1}</h3><ul>${team.map(p => `<li>${p}</li>`).join('')}</ul>`;
-        teamsDiv.appendChild(teamDiv);
-      });
-    }
+        const div = document.createElement("div");
+        div.innerHTML = `<h3>Team ${i + 1}</h3>`;
+        team.forEach(speler => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "player-input";
 
-    function confirmTeams() {
-      document.getElementById('setupScreen').style.display = 'none';
-      editTeamsScreen.style.display = 'block';
-      const editDiv = document.getElementById('editTeams');
-      editDiv.innerHTML = '';
-      captainsSelected = Array(currentTeams.length).fill(null);
+          const label = document.createElement("label");
+          label.textContent = speler;
 
-      currentTeams.forEach((team, i) => {
-        const teamDiv = document.createElement('div');
-        teamDiv.className = 'team';
-
-        const teamNameInput = document.createElement('input');
-        teamNameInput.type = 'text';
-        teamNameInput.value = `Team ${i + 1}`;
-        teamNameInput.id = `teamName${i}`;
-
-        const playerList = document.createElement('ul');
-        team.forEach(player => {
-          const li = document.createElement('li');
-
-          const label = document.createElement('label');
-          label.className = 'team-captain';
-
-          const checkbox = document.createElement('input');
-          checkbox.type = 'radio';
-          checkbox.name = `captain${i}`;
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "team-captain-checkbox";
           checkbox.onclick = () => {
-            [...playerList.children].forEach(child => child.firstChild.classList.remove('selected-captain'));
-            label.classList.add('selected-captain');
-            captainsSelected[i] = player;
-            checkReadyToStart();
+            const checkboxes = wrapper.parentElement.querySelectorAll("input[type=checkbox]");
+            checkboxes.forEach(cb => {
+              if (cb !== checkbox) cb.checked = false;
+            });
+
+            wrapper.parentElement.querySelectorAll("label").forEach(label => label.classList.remove("selected-captain"));
+            if (checkbox.checked) label.classList.add("selected-captain");
           };
 
-          label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(' ' + player));
-
-          li.appendChild(label);
-          playerList.appendChild(li);
+          wrapper.appendChild(label);
+          wrapper.appendChild(checkbox);
+          div.appendChild(wrapper);
         });
-
-        teamDiv.appendChild(teamNameInput);
-        teamDiv.appendChild(playerList);
-        editDiv.appendChild(teamDiv);
+        teamEditor.appendChild(div);
       });
-
-      checkReadyToStart();
-    }
-
-    function checkReadyToStart() {
-      const tournamentNeeded = currentTeams.length > 2;
-      if (!tournamentNeeded || captainsSelected.every(c => c)) {
-        startTournamentBtn.disabled = false;
-      } else {
-        startTournamentBtn.disabled = true;
-      }
     }
 
     function startTournament() {
-      editTeamsScreen.style.display = 'none';
-      document.getElementById('tournamentScreen').style.display = 'block';
+      document.getElementById("bewerken-scherm").style.display = "none";
+      document.getElementById("toernooi-scherm").style.display = "block";
 
-      const teamNames = currentTeams.map((_, i) => document.getElementById(`teamName${i}`).value);
-      const teamCount = currentTeams.length;
-      const tournamentDiv = document.getElementById('tournament');
-      tournamentDiv.innerHTML = '';
-
-      if (teamCount > 2) {
-        let matchNr = 1;
-        for (let i = 0; i < teamCount; i++) {
-          for (let j = i + 1; j < teamCount; j++) {
-            const available = Array.from({ length: teamCount }, (_, k) => k).filter(k => k !== i && k !== j);
-            const refIndex = available[Math.floor(Math.random() * available.length)];
-            const matchDiv = document.createElement('div');
-            matchDiv.className = 'match';
-            matchDiv.innerHTML = `<h4>Wedstrijd ${matchNr++}</h4><p>${teamNames[i]} vs ${teamNames[j]} <br> Scheidsrechter: ${teamNames[refIndex]}</p>`;
-            tournamentDiv.appendChild(matchDiv);
-          }
-        }
-      } else {
-        const matchDiv = document.createElement('div');
-        matchDiv.className = 'match';
-        matchDiv.innerHTML = `<h4>Wedstrijd</h4><p>${teamNames[0]} vs ${teamNames[1]}</p>`;
-        tournamentDiv.appendChild(matchDiv);
-      }
+      const wedstrijden = document.getElementById("wedstrijden");
+      wedstrijden.innerHTML = "<p>Toernooi begint!</p>";
     }
 
-    function goBackToSetup() {
-      document.getElementById('setupScreen').style.display = 'block';
-      editTeamsScreen.style.display = 'none';
-    }
-
-    function goBackToEdit() {
-      editTeamsScreen.style.display = 'block';
-      document.getElementById('tournamentScreen').style.display = 'none';
+    function goBack() {
+      window.history.back();
     }
 
     function goHome() {
       location.reload();
     }
+
+    for (let i = 0; i < 4; i++) addSpeler();
   </script>
 </body>
+
 </html>
