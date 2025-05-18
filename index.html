@@ -108,8 +108,8 @@
     <div id="begin-scherm">
       <h2>Spelers toevoegen</h2>
       <div class="button-group">
-        <button onclick="addSpeler()">+</button>
         <button onclick="removeSpeler()">-</button>
+        <button onclick="addSpeler()">+</button>
       </div>
       <div id="spelers-container" class="player-list"></div>
 
@@ -130,7 +130,7 @@
       <p>Selecteer per team een Team Captain voordat je doorgaat.</p>
       <div id="team-editor"></div>
       <div class="button-group">
-        <button onclick="verdeelTeams()">Reshuffle</button>
+        <button onclick="reshuffleTeams()">Reshuffle</button>
         <button id="start-btn" onclick="startTournament()" disabled>Start het Floenken</button>
       </div>
     </div>
@@ -145,6 +145,7 @@
     let spelers = [];
     let minSpelers = 4;
     let maxSpelers = 24;
+    let huidigeTeams = [];
 
     function addSpeler() {
       if (spelers.length < maxSpelers) {
@@ -173,20 +174,28 @@
     }
 
     function verdeelTeams() {
+      const aantalTeams = parseInt(document.getElementById("aantal-teams").value);
+      huidigeTeams = Array.from({ length: aantalTeams }, () => []);
+      const shuffledSpelers = [...spelers].sort(() => 0.5 - Math.random());
+      shuffledSpelers.forEach((speler, index) => {
+        huidigeTeams[index % aantalTeams].push(speler);
+      });
+      toonTeamEditor();
+    }
+
+    function reshuffleTeams() {
+      verdeelTeams();
+    }
+
+    function toonTeamEditor() {
       document.getElementById("begin-scherm").style.display = "none";
       document.getElementById("bewerken-scherm").style.display = "block";
       document.getElementById("top-nav").classList.add("show");
 
       const teamEditor = document.getElementById("team-editor");
       teamEditor.innerHTML = "";
-      const aantalTeams = parseInt(document.getElementById("aantal-teams").value);
-      let teams = Array.from({ length: aantalTeams }, () => []);
 
-      spelers.forEach((speler, index) => {
-        teams[index % aantalTeams].push(speler);
-      });
-
-      teams.forEach((team, i) => {
+      huidigeTeams.forEach((team, i) => {
         const div = document.createElement("div");
         div.className = "team-container";
         div.innerHTML = `<h3><input value="Team ${i + 1}" /></h3>`;
