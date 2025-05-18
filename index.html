@@ -17,8 +17,7 @@
 
     h1, h2, h3 {
       color: black;
-      background-color: white;
-      border-radius: 10px;
+      background-color: transparent;
       display: inline-block;
       padding: 0.2em 1em;
     }
@@ -124,7 +123,10 @@
       <h2>Teams bewerken</h2>
       <p>Selecteer per team een Team Captain voordat je doorgaat.</p>
       <div id="team-editor"></div>
-      <button onclick="startTournament()">Toernooi beginnen</button>
+      <div class="button-group">
+        <button onclick="verdeelTeams()">Reshuffle</button>
+        <button id="start-btn" onclick="startTournament()" disabled>Start het Floenken</button>
+      </div>
     </div>
 
     <div id="toernooi-scherm" style="display:none">
@@ -157,8 +159,8 @@
       container.innerHTML = "";
       spelers.forEach((speler, index) => {
         const input = document.createElement("input");
-        input.placeholder = `Speler ${index + 1}`;
         input.value = speler;
+        input.placeholder = `Speler ${index + 1}`;
         input.oninput = (e) => spelers[index] = e.target.value;
         container.appendChild(input);
       });
@@ -180,7 +182,9 @@
 
       teams.forEach((team, i) => {
         const div = document.createElement("div");
-        div.innerHTML = `<h3>Team ${i + 1}</h3>`;
+        div.innerHTML = `<h3><input value="Team ${i + 1}" /></h3>`;
+        let hasCaptain = false;
+
         team.forEach(speler => {
           const wrapper = document.createElement("div");
           wrapper.className = "player-input";
@@ -193,12 +197,10 @@
           checkbox.className = "team-captain-checkbox";
           checkbox.onclick = () => {
             const checkboxes = wrapper.parentElement.querySelectorAll("input[type=checkbox]");
-            checkboxes.forEach(cb => {
-              if (cb !== checkbox) cb.checked = false;
-            });
-
-            wrapper.parentElement.querySelectorAll("label").forEach(label => label.classList.remove("selected-captain"));
+            checkboxes.forEach(cb => { if (cb !== checkbox) cb.checked = false; });
+            wrapper.parentElement.querySelectorAll("label").forEach(lbl => lbl.classList.remove("selected-captain"));
             if (checkbox.checked) label.classList.add("selected-captain");
+            checkTeamCaptains();
           };
 
           wrapper.appendChild(label);
@@ -207,6 +209,20 @@
         });
         teamEditor.appendChild(div);
       });
+    }
+
+    function checkTeamCaptains() {
+      const teamDivs = document.getElementById("team-editor").children;
+      let allSelected = true;
+      for (const div of teamDivs) {
+        const checkboxes = div.querySelectorAll("input[type=checkbox]");
+        const oneChecked = Array.from(checkboxes).some(cb => cb.checked);
+        if (!oneChecked) {
+          allSelected = false;
+          break;
+        }
+      }
+      document.getElementById("start-btn").disabled = !allSelected;
     }
 
     function startTournament() {
