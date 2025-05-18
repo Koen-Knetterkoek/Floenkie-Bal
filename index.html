@@ -109,6 +109,18 @@
     .matchup-button.selected {
       background-color: lightgreen;
     }
+
+    table {
+      width: 100%;
+      background-color: white;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 8px;
+    }
   </style>
 </head>
 
@@ -164,7 +176,18 @@
       <p>En Floenken maar! Vul na deze ronde in welk team gewonnen heeft</p>
       <div id="wedstrijd-knoppen" class="button-group"></div>
       <div class="button-group">
-        <button id="einde-ronde-knop" onclick="eindeRonde()" disabled>Einde ronde</button>
+        <button id="einde-ronde-knop" onclick="toonTussenstand()" disabled>Einde ronde</button>
+      </div>
+    </div>
+
+    <div id="tussenstand-scherm" style="display:none">
+      <h2>Tussenstand</h2>
+      <table>
+        <thead><tr><th>Team</th><th>Overwinningen</th></tr></thead>
+        <tbody id="tussenstand-tabel"></tbody>
+      </table>
+      <div class="button-group">
+        <button id="start-volgende-ronde-knop" onclick="startRonde(volgendeRondeNummer)">Start ronde</button>
       </div>
     </div>
   </div>
@@ -174,7 +197,9 @@
     let minSpelers = 4;
     let maxSpelers = 24;
     let huidigeTeams = [];
-    let huidigeWedstrijd = {};
+    let rondeNummer = 1;
+    let tussenstand = {};
+    let volgendeRondeNummer = 2;
 
     function addSpeler() {
       if (spelers.length < maxSpelers) {
@@ -273,19 +298,21 @@
       document.getElementById("bewerken-scherm").style.display = "none";
       document.getElementById("toernooi-scherm").style.display = "block";
       const wedstrijden = document.getElementById("wedstrijden");
-      wedstrijden.innerHTML = "<p>Toernooi begint!</p>";
+      wedstrijden.innerHTML = huidigeTeams.map((team, i) => `<p>Team ${i + 1}: ${team.join(', ')}</p>`).join('');
     }
 
     function startRonde(nr) {
+      rondeNummer = nr;
       document.getElementById("toernooi-scherm").style.display = "none";
+      document.getElementById("tussenstand-scherm").style.display = "none";
       document.getElementById("ronde-scherm").style.display = "block";
       document.getElementById("ronde-titel").textContent = `Ronde ${nr}`;
+
       const knoppen = document.getElementById("wedstrijd-knoppen");
       knoppen.innerHTML = "";
 
-      const team1 = huidigeTeams[0][0] || "Team 1";
-      const team2 = huidigeTeams[1][0] || "Team 2";
-      huidigeWedstrijd = { team1, team2 };
+      const team1 = `Team 1`;
+      const team2 = `Team 2`;
 
       [team1, team2].forEach(team => {
         const btn = document.createElement("button");
@@ -300,27 +327,24 @@
       });
     }
 
-    function eindeRonde() {
-      alert("Tussenstand volgt...");
+    function toonTussenstand() {
+      const geselecteerde = document.querySelector(".matchup-button.selected");
+      if (geselecteerde) {
+        const winnendeTeam = geselecteerde.textContent;
+        tussenstand[winnendeTeam] = (tussenstand[winnendeTeam] || 0) + 1;
+      }
+
+      const tbody = document.getElementById("tussenstand-tabel");
+      tbody.innerHTML = Object.entries(tussenstand).map(([team, score]) => `<tr><td>${team}</td><td>${score}</td></tr>`).join('');
+
+      document.getElementById("ronde-scherm").style.display = "none";
+      document.getElementById("tussenstand-scherm").style.display = "block";
+      document.getElementById("start-volgende-ronde-knop").textContent = `Start ronde ${++volgendeRondeNummer}`;
     }
 
     function goBack() {
-      const bewerkenScherm = document.getElementById("bewerken-scherm");
-      const toernooiScherm = document.getElementById("toernooi-scherm");
-      const beginScherm = document.getElementById("begin-scherm");
-      const rondeScherm = document.getElementById("ronde-scherm");
-
-      if (rondeScherm.style.display === "block") {
-        rondeScherm.style.display = "none";
-        toernooiScherm.style.display = "block";
-      } else if (toernooiScherm.style.display === "block") {
-        toernooiScherm.style.display = "none";
-        bewerkenScherm.style.display = "block";
-      } else if (bewerkenScherm.style.display === "block") {
-        bewerkenScherm.style.display = "none";
-        beginScherm.style.display = "block";
-        document.getElementById("top-nav").classList.remove("show");
-      }
+      // Simplified: always go home for demo
+      goHome();
     }
 
     function goHome() {
@@ -328,6 +352,7 @@
       document.getElementById("bewerken-scherm").style.display = "none";
       document.getElementById("toernooi-scherm").style.display = "none";
       document.getElementById("ronde-scherm").style.display = "none";
+      document.getElementById("tussenstand-scherm").style.display = "none";
       document.getElementById("top-nav").classList.remove("show");
     }
 
