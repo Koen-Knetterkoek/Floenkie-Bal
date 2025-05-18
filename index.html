@@ -131,14 +131,6 @@
     .team-headers input {
       flex: 1;
     }
-
-    #tie-break-scherm {
-      display: none;
-    }
-
-    #toernooi-scherm {
-      display: none;
-    }
   </style>
 </head>
 
@@ -152,84 +144,234 @@
     <h1>Floenkie Bal</h1>
 
     <div id="begin-scherm">
-      <!-- Bestaande content-->
+      <h2>Spelers toevoegen</h2>
+      <div class="button-group">
+        <button onclick="removeSpeler()">-</button>
+        <button onclick="addSpeler()">+</button>
+      </div>
+      <div id="spelers-container" class="player-list"></div>
+
+      <h2>Aantal teams</h2>
+      <select id="aantal-teams">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+
+      <div class="button-group">
+        <button onclick="verdeelTeams()">Teams verdelen</button>
+      </div>
     </div>
 
-    <div id="tie-break-scherm">
-      <h2>Tie Break</h2>
-      <p>Selecteer 2 teams voor de finaleronde:</p>
-      <div id="tie-break-teams" class="button-group"></div>
-      <button onclick="startFinale()" id="start-finale-btn" disabled>Start Finaleronde</button>
+    <div id="bewerken-scherm" style="display:none">
+      <h2>Teams bewerken</h2>
+      <p>Selecteer per team een Team Captain voordat je doorgaat.</p>
+      <div id="team-editor"></div>
+      <div class="button-group">
+        <button onclick="reshuffleTeams()">Reshuffle</button>
+        <button id="start-btn" onclick="startTournament()" disabled>Start het Floenken</button>
+      </div>
     </div>
 
-    <div id="toernooi-scherm">
+    <div id="toernooi-scherm" style="display:none">
       <h2>Toernooi Schema</h2>
       <div id="wedstrijden"></div>
+      <div class="button-group">
+        <button onclick="startRonde(1)">Start ronde 1</button>
+      </div>
+    </div>
+
+    <div id="ronde-scherm" style="display:none">
+      <h2 id="ronde-titel"></h2>
+      <p>En Floenken maar! Vul na deze ronde in welk team gewonnen heeft</p>
+      <div id="wedstrijd-knoppen" class="button-group"></div>
+      <div class="button-group">
+        <button id="einde-ronde-knop" onclick="toonTussenstand()" disabled>Einde ronde</button>
+      </div>
+    </div>
+
+    <div id="tussenstand-scherm" style="display:none">
+      <h2>Tussenstand</h2>
+      <table>
+        <thead><tr><th>Team</th><th>Overwinningen</th></tr></thead>
+        <tbody id="tussenstand-tabel"></tbody>
+      </table>
+      <div class="button-group">
+        <button id="start-volgende-ronde-knop" onclick="startRonde(volgendeRondeNummer)">Start ronde</button>
+      </div>
     </div>
   </div>
 
   <script>
-    let teamNamen = [];
-    let gespeeldeRondes = [];
+    let spelers = [];
+    let minSpelers = 4;
+    let maxSpelers = 24;
+    let huidigeTeams = [];
+    let rondeNummer = 1;
+    let tussenstand = {};
+    let volgendeRondeNummer = 2;
 
-    function startTournament() {
-      document.getElementById("bewerken-scherm")?.style?.display = "none";
-      document.getElementById("toernooi-scherm").style.display = "block";
+    function addSpeler() {
+      if (spelers.length < maxSpelers) {
+        spelers.push("");
+        renderSpelers();
+      }
+    }
 
-      const wedstrijden = document.getElementById("wedstrijden");
-      wedstrijden.innerHTML = "";
-      teamNamen = [];
+    function removeSpeler() {
+      if (spelers.length > minSpelers) {
+        spelers.pop();
+        renderSpelers();
+      }
+    }
 
-      document.querySelectorAll(".team-container .team-headers input").forEach((input, i) => {
-        const naam = input.value.trim() || `Team ${i + 1}`;
-        teamNamen.push(naam);
-      });
-
-      gespeeldeRondes = genereerRondes(teamNamen);
-      gespeeldeRondes.forEach((match, index) => {
-        wedstrijden.innerHTML += `<p>Ronde ${index + 1}: ${match[0]} vs ${match[1]}</p>`;
+    function renderSpelers() {
+      const container = document.getElementById("spelers-container");
+      container.innerHTML = "";
+      spelers.forEach((speler, index) => {
+        const input = document.createElement("input");
+        input.value = speler;
+        input.placeholder = `Speler ${index + 1}`;
+        input.oninput = (e) => spelers[index] = e.target.value;
+        container.appendChild(input);
       });
     }
 
-    function genereerRondes(teams) {
-      const rondes = [];
-      for (let i = 0; i < teams.length; i++) {
-        for (let j = i + 1; j < teams.length; j++) {
-          rondes.push([teams[i], teams[j]]);
+    function verdeelTeams() {
+      const aantalTeams = parseInt(document.getElementById("aantal-teams").value);
+      huidigeTeams = Array.from({ length: aantalTeams }, () => []);
+      const shuffledSpelers = [...spelers].sort(() => 0.5 - Math.random());
+      shuffledSpelers.forEach((speler, index) => {
+        huidigeTeams[index % aantalTeams].push(speler);
+      });
+      toonTeamEditor();
+    }
+
+    function reshuffleTeams() {
+      verdeelTeams();
+    }
+
+    function toonTeamEditor() {
+      document.getElementById("begin-scherm").style.display = "none";
+      document.getElementById("bewerken-scherm").style.display = "block";
+      document.getElementById("top-nav").classList.add("show");
+
+      const teamEditor = document.getElementById("team-editor");
+      teamEditor.innerHTML = "";
+
+      huidigeTeams.forEach((team, i) => {
+        const div = document.createElement("div");
+        div.className = "team-container";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "team-headers";
+        const teamNameInput = document.createElement("input");
+        teamNameInput.value = `Team ${i + 1}`;
+        headerDiv.appendChild(teamNameInput);
+        div.appendChild(headerDiv);
+
+        team.forEach(speler => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "player-input";
+
+          const label = document.createElement("label");
+          label.textContent = speler;
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "team-captain-checkbox";
+          checkbox.onclick = () => {
+            const checkboxes = wrapper.parentElement.querySelectorAll("input[type=checkbox]");
+            checkboxes.forEach(cb => { if (cb !== checkbox) cb.checked = false; });
+            wrapper.parentElement.querySelectorAll("label").forEach(lbl => lbl.classList.remove("selected-captain"));
+            if (checkbox.checked) label.classList.add("selected-captain");
+            checkTeamCaptains();
+          };
+
+          wrapper.appendChild(label);
+          wrapper.appendChild(checkbox);
+          div.appendChild(wrapper);
+        });
+        teamEditor.appendChild(div);
+      });
+    }
+
+    function checkTeamCaptains() {
+      const teamDivs = document.getElementById("team-editor").children;
+      let allSelected = true;
+      for (const div of teamDivs) {
+        const checkboxes = div.querySelectorAll("input[type=checkbox]");
+        const oneChecked = Array.from(checkboxes).some(cb => cb.checked);
+        if (!oneChecked) {
+          allSelected = false;
+          break;
         }
       }
-      return rondes;
+      document.getElementById("start-btn").disabled = !allSelected;
     }
 
-    function toonTieBreak(teams) {
-      document.getElementById("tussenstand-scherm")?.style?.display = "none";
-      document.getElementById("tie-break-scherm").style.display = "block";
+    function startTournament() {
+      document.getElementById("bewerken-scherm").style.display = "none";
+      document.getElementById("toernooi-scherm").style.display = "block";
+      const wedstrijden = document.getElementById("wedstrijden");
+      wedstrijden.innerHTML = huidigeTeams.map((team, i) => `<p>Team ${i + 1}: ${team.join(', ')}</p>`).join('');
+    }
 
-      const container = document.getElementById("tie-break-teams");
-      container.innerHTML = "";
-      let geselecteerd = [];
+    function startRonde(nr) {
+      rondeNummer = nr;
+      document.getElementById("toernooi-scherm").style.display = "none";
+      document.getElementById("tussenstand-scherm").style.display = "none";
+      document.getElementById("ronde-scherm").style.display = "block";
+      document.getElementById("ronde-titel").textContent = `Ronde ${nr}`;
 
-      teams.forEach(team => {
+      const knoppen = document.getElementById("wedstrijd-knoppen");
+      knoppen.innerHTML = "";
+
+      const team1 = `Team 1`;
+      const team2 = `Team 2`;
+
+      [team1, team2].forEach(team => {
         const btn = document.createElement("button");
         btn.className = "matchup-button";
         btn.textContent = team;
         btn.onclick = () => {
-          btn.classList.toggle("selected");
-          geselecteerd = [...container.querySelectorAll(".selected")].map(b => b.textContent);
-          document.getElementById("start-finale-btn").disabled = geselecteerd.length !== 2;
+          document.querySelectorAll(".matchup-button").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          document.getElementById("einde-ronde-knop").disabled = false;
         };
-        container.appendChild(btn);
+        knoppen.appendChild(btn);
       });
     }
 
-    function startFinale() {
-      const geselecteerd = [...document.querySelectorAll("#tie-break-teams .selected")].map(b => b.textContent);
-      if (geselecteerd.length === 2) {
-        gespeeldeRondes.push([[geselecteerd[0], geselecteerd[1]]]);
-        startRonde(gespeeldeRondes.length);
-        document.getElementById("tie-break-scherm").style.display = "none";
+    function toonTussenstand() {
+      const geselecteerde = document.querySelector(".matchup-button.selected");
+      if (geselecteerde) {
+        const winnendeTeam = geselecteerde.textContent;
+        tussenstand[winnendeTeam] = (tussenstand[winnendeTeam] || 0) + 1;
       }
+
+      const tbody = document.getElementById("tussenstand-tabel");
+      tbody.innerHTML = Object.entries(tussenstand).map(([team, score]) => `<tr><td>${team}</td><td>${score}</td></tr>`).join('');
+
+      document.getElementById("ronde-scherm").style.display = "none";
+      document.getElementById("tussenstand-scherm").style.display = "block";
+      document.getElementById("start-volgende-ronde-knop").textContent = `Start ronde ${++volgendeRondeNummer}`;
     }
+
+    function goBack() {
+      goHome();
+    }
+
+    function goHome() {
+      document.getElementById("begin-scherm").style.display = "block";
+      document.getElementById("bewerken-scherm").style.display = "none";
+      document.getElementById("toernooi-scherm").style.display = "none";
+      document.getElementById("ronde-scherm").style.display = "none";
+      document.getElementById("tussenstand-scherm").style.display = "none";
+      document.getElementById("top-nav").classList.remove("show");
+    }
+
+    for (let i = 0; i < 4; i++) addSpeler();
   </script>
 </body>
 
