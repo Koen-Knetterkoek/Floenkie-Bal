@@ -121,6 +121,16 @@
       border: 1px solid #000;
       padding: 8px;
     }
+
+    .team-headers {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .team-headers input {
+      flex: 1;
+    }
   </style>
 </head>
 
@@ -252,7 +262,13 @@
       huidigeTeams.forEach((team, i) => {
         const div = document.createElement("div");
         div.className = "team-container";
-        div.innerHTML = `<h3><input value="Team ${i + 1}" /></h3>`;
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "team-headers";
+        const teamNameInput = document.createElement("input");
+        teamNameInput.value = `Team ${i + 1}`;
+        headerDiv.appendChild(teamNameInput);
+        div.appendChild(headerDiv);
 
         team.forEach(speler => {
           const wrapper = document.createElement("div");
@@ -343,7 +359,6 @@
     }
 
     function goBack() {
-      // Simplified: always go home for demo
       goHome();
     }
 
