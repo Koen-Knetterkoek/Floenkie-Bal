@@ -29,44 +29,59 @@
     .team h3, .match h4 {
       margin-bottom: 5px;
     }
+    #tournamentScreen {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <h1>Drankspel Teamverdeler</h1>
 
-  <label for="teamCount">Aantal teams:</label>
-  <select id="teamCount">
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-  </select>
+  <div id="setupScreen">
+    <label for="teamCount">Aantal teams:</label>
+    <select id="teamCount">
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>
 
-  <h2>Voer spelers in:</h2>
-  <div>
-    <button onclick="adjustPlayerCount(-1)">-</button>
-    <button onclick="adjustPlayerCount(1)">+</button>
+    <h2>Voer spelers in:</h2>
+    <div>
+      <button onclick="adjustPlayerCount(-1)">-</button>
+      <button onclick="adjustPlayerCount(1)">+</button>
+    </div>
+    <div id="playerInputs"></div>
+
+    <button id="generateBtn" onclick="generateTeams()">Verdeel in teams</button>
+    <button id="confirmBtn" style="display:none;" onclick="confirmTeams()">Teams bevestigen</button>
+
+    <div id="teams"></div>
   </div>
-  <div id="playerInputs"></div>
 
-  <button onclick="generateTeams()">Verdeel in teams</button>
-
-  <div id="teams"></div>
-  <div id="tournament"></div>
+  <div id="tournamentScreen">
+    <h2>Toernooi</h2>
+    <div id="tournament"></div>
+  </div>
 
   <script>
-    let playerCount = 12;
+    let playerCount = 4;
     const minPlayers = 4;
     const maxPlayers = 24;
     const playerInputsDiv = document.getElementById('playerInputs');
+    const generateBtn = document.getElementById('generateBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
 
     function renderPlayerInputs() {
-      playerInputsDiv.innerHTML = '';
-      for (let i = 1; i <= playerCount; i++) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = `Speler ${i}`;
-        input.id = `player${i}`;
-        playerInputsDiv.appendChild(input);
+      for (let i = 1; i <= maxPlayers; i++) {
+        let input = document.getElementById(`player${i}`);
+        if (!input) {
+          input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = `Speler ${i}`;
+          input.id = `player${i}`;
+          playerInputsDiv.appendChild(input);
+        }
+        input.style.display = i <= playerCount ? 'block' : 'none';
       }
     }
 
@@ -84,6 +99,8 @@
       }
       return array;
     }
+
+    let currentTeams = [];
 
     function generateTeams() {
       const teamCount = parseInt(document.getElementById('teamCount').value);
@@ -105,25 +122,37 @@
       }
 
       const shuffledPlayers = shuffleArray(players);
-      const teams = Array.from({ length: teamCount }, () => []);
+      currentTeams = Array.from({ length: teamCount }, () => []);
       shuffledPlayers.forEach((player, index) => {
-        teams[index % teamCount].push(player);
+        currentTeams[index % teamCount].push(player);
       });
 
-      const teamsDiv = document.getElementById('teams');
-      const tournamentDiv = document.getElementById('tournament');
-      teamsDiv.innerHTML = '';
-      tournamentDiv.innerHTML = '';
+      displayTeams(currentTeams);
 
+      generateBtn.textContent = 'Reshuffle';
+      confirmBtn.style.display = 'inline-block';
+    }
+
+    function displayTeams(teams) {
+      const teamsDiv = document.getElementById('teams');
+      teamsDiv.innerHTML = '';
       teams.forEach((team, i) => {
         const teamDiv = document.createElement('div');
         teamDiv.className = 'team';
         teamDiv.innerHTML = `<h3>Team ${i + 1}</h3><ul>${team.map(p => `<li>${p}</li>`).join('')}</ul>`;
         teamsDiv.appendChild(teamDiv);
       });
+    }
+
+    function confirmTeams() {
+      document.getElementById('setupScreen').style.display = 'none';
+      document.getElementById('tournamentScreen').style.display = 'block';
+
+      const teamCount = currentTeams.length;
+      const tournamentDiv = document.getElementById('tournament');
+      tournamentDiv.innerHTML = '';
 
       if (teamCount > 2) {
-        const usedIndexes = new Set();
         let matchNr = 1;
         for (let i = 0; i < teamCount; i++) {
           for (let j = i + 1; j < teamCount; j++) {
@@ -135,6 +164,11 @@
             tournamentDiv.appendChild(matchDiv);
           }
         }
+      } else {
+        const matchDiv = document.createElement('div');
+        matchDiv.className = 'match';
+        matchDiv.innerHTML = `<h4>Wedstrijd</h4><p>Team 1 vs Team 2</p>`;
+        tournamentDiv.appendChild(matchDiv);
       }
     }
   </script>
